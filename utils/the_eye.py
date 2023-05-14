@@ -25,7 +25,7 @@ def do_search(name, args):
     if args.no_eye:
         return [], 0
     if not ensure_db_downloaded():
-        print("Database not found. Please download it from: https://drive.google.com/drive/folders/1kf4lTu3-ZMlUveiCQL_B7qYZm0WAHKKB. Then, put the files in the same folder as the `searcher.py` script.")
+        print("Database not found. Please download it from: https://drive.google.com/drive/folders/1kf4lTu3-ZMlUveiCQL_B7qYZm0WAHKKB. Then, put the files in the same folder as the `odsearcher.py` script.")
         return [], 0
     if not os.path.exists(".fixed_dbs"):
         print("Database not yet fixed. Automatically fixing...")
