@@ -15,7 +15,7 @@ Searches locally indexed open directories for files using broad search categorie
 If you installed the script as reccomended in the above instructions, then you'll already have downloaded the databases for the-eye. If you didn't, that's completely okay - your searches just won't turn anything up until you add some open directories to your local index. If you want a small sample of open directories to get started with, see `samples.md`. To find more open directories, check out the search tools at [odfinder.github.io](https://odfinder.github.io/) and [open-directories.reecemercer.dev](https://open-directories.reecemercer.dev/) - I've found them to work the best out of all I've tried. For interesting results, try pasting the resulting search query into other engines, such as Startpage or DuckDuckGo.
 
 ```txt
-usage: odsearcher.py [-h] [-d] [-s] [-e] [-v] [-a] [-w] [-b] [-t] [-m] [-l LANGUAGE] [--season SEASON] [--episode EPISODE] [--filter-camera] [--disable-sanity-filter] [--force-format FORCE_FORMAT] [--eye-only] [-n] [--eye-no-nonpiracy] [--eye-no-piracy] [--add ADD] [-r REMOVE] [-u] name
+usage: odsearcher.py [-h] [-d] [-s] [-e] [-v] [-a] [-w] [-b] [-t] [-m] [-l LANGUAGE] [-g] [--season SEASON] [--episode EPISODE] [--filter-camera] [--disable-sanity-filter] [--force-format FORCE_FORMAT] [--eye-only] [-n] [--eye-no-nonpiracy] [--eye-no-piracy] [--add ADD] [-r REMOVE] [-u] name
 
 Search for a specific file in the current indexed opendirectories
 
@@ -35,6 +35,7 @@ options:
   -m, --multiplevideo   Optimize for multiple-video search (eg. movie series)
   -l LANGUAGE, --language LANGUAGE
                         Filter to the specified language (eg. en, fr, de, es, etc.)
+  -g, --no-googledork   Google dork to find more directories containing the file.
   --season SEASON       Season number for TV show search
   --episode EPISODE     Episode number for TV show search
   --filter-camera       Filter out camera rips
