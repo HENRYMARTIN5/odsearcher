@@ -42,7 +42,7 @@ parser.add_argument('-b', '--books', action='store_true', help='Optimize for ebo
 parser.add_argument('-t', '--tv', action='store_true', help='Optimize for TV show search')
 parser.add_argument('-m', '--multiplevideo', action='store_true', help='Optimize for multiple-video search (eg. movie series)')
 parser.add_argument('-l', '--language', help='Filter to the specified language (eg. en, fr, de, es, etc.)')
-parser.add_argument('-g', '--googledork', action='store_true', help='Google dork to find more directories containing the file.')
+parser.add_argument('-g', '--no-googledork', action='store_true', help='Google dork to find more directories containing the file.')
 parser.add_argument('--season', help='Season number for TV show search')
 parser.add_argument('--episode', help='Episode number for TV show search')
 parser.add_argument('--filter-camera', action='store_true', help='Filter out camera rips')
@@ -138,7 +138,7 @@ def search(name):
     total += _total
     print("Total matches: " + str(total))
 
-    if args.googledork and total == 0:
+    if not args.no_googledork and total == 0:
         print("No matches, googledorking for " + name + " ...")
         if args.video or args.multiplevideo:
             filequery = "mkv|mp4|avi|mov|mpg|wmv|divx|mpeg"
