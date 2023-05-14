@@ -7,6 +7,7 @@ try:
     import langid
     import re
     from utils import the_eye
+    import googlesearch
 except ImportError:
     # install dependencies
     import subprocess
@@ -21,6 +22,7 @@ except ImportError:
     import fuzzysearch
     import os
     import langid
+    import googlesearch
 
 utils = ["the_eye"]
 
@@ -40,6 +42,7 @@ parser.add_argument('-b', '--books', action='store_true', help='Optimize for ebo
 parser.add_argument('-t', '--tv', action='store_true', help='Optimize for TV show search')
 parser.add_argument('-m', '--multiplevideo', action='store_true', help='Optimize for multiple-video search (eg. movie series)')
 parser.add_argument('-l', '--language', help='Filter to the specified language (eg. en, fr, de, es, etc.)')
+parser.add_argument('-g', '--googledork', action='store_true', help='Google dork to find more directories containing the file.')
 parser.add_argument('--season', help='Season number for TV show search')
 parser.add_argument('--episode', help='Episode number for TV show search')
 parser.add_argument('--filter-camera', action='store_true', help='Filter out camera rips')
@@ -61,7 +64,7 @@ def check_filetype(name):
     if "node_modules" in name.lower() and not args.disable_sanity_filter:
         return False
     if args.filter_camera:
-        if "camrip" in name.lower() or "cam-rip" in name.lower() or "cam rip" in name.lower() or "cam" in name.lower() or "hdcam" in name.lower():
+        if "camrip" in name.lower() or "cam-rip" in name.lower() or "cam rip" in name.lower() or "cam" in name.lower() or "hdcam" in name.lower() or "hd-cam" in name.lower():
             return False
     if args.video or args.multiplevideo or args.tv:
         if name.endswith(".mkv") or name.endswith(".mp4") or name.endswith(".avi") or name.endswith(".flv") or name.endswith(".mov") or name.endswith(".wmv") or name.endswith(".webm"):
@@ -134,6 +137,59 @@ def search(name):
     matches += _matches
     total += _total
     print("Total matches: " + str(total))
+
+    if args.googledork and total == 0:
+        print("No matches, googledorking for " + name + " ...")
+        if args.video or args.multiplevideo:
+            filequery = "mkv|mp4|avi|mov|mpg|wmv|divx|mpeg"
+        elif args.audio:
+            filequery = "mp3|wav|ac3|ogg|flac|wma|m4a|aac|mod"
+        elif args.warez:
+            filequery = "exe|iso|dmg|tar|7z|bz2|gz|rar|zip|apk"
+        elif args.books:
+            filequery = "rzb|tpz|apnx|lrs|mart|tk3|mobi|azw3|kfx|ncx|ibooks|lrf|pdf"
+        else:
+            filequery = False
+        if filequery:
+            query = name.lower() + " (" + filequery + ") -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:index.of -inurl:(listen77|mp3raid|mp3toss|mp3drug|index_of|index-of|wallywashis|downloadmana)"
+        else:
+            query = name.lower() + " -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:index.of -inurl:(listen77|mp3raid|mp3toss|mp3drug|index_of|index-of|wallywashis|downloadmana)"
+        print("\nGoogle dorking for " + query + " ...")
+        urlsIndexed = []
+        results = googlesearch.search(query)
+        for url in results:
+            # is url indexed?
+            if os.path.exists(os.path.join("OpenDirectoryDownloader/Scans", url.replace("/", "_") + ".txt")):
+                print("Already indexed " + url + ". Skipping.")
+                continue
+            isGoodResult = False
+
+            print("Indexing " + url + " ...")
+            os.chdir("OpenDirectoryDownloader")
+            if os.name == "nt":
+                os.chdir("OpenDirectoryDownloader")
+                os.system("opendirectorydownloader.exe -q -u " + url)
+                os.chdir("..")
+            else:
+                os.chdir("OpenDirectoryDownloader")
+                os.system("chmod +x OpenDirectoryDownloader")
+                os.system("./OpenDirectoryDownloader -q -u " + url)
+                os.chdir("..")
+            print("Done indexing " + url + ".\n")
+            urlsIndexed.append(url)
+        print("Done googledorking for " + query + ". Searching again in new databases...\n")
+        for newlyIndexed in urlsIndexed:
+            with open(os.path.join("OpenDirectoryDownloader/Scans", newlyIndexed.replace("/", "_") + ".txt"), "r", errors='replace') as f:
+                text = f.read()
+                i = 0
+                for line in text.splitlines():
+                    if fuzzysearch.find_near_matches(name, line.lower(), max_l_dist=1) or fuzzysearch.find_near_matches(name.replace(" ", "."), line.lower(), max_l_dist=1) or fuzzysearch.find_near_matches(name.replace(" ", "_"), line.lower(), max_l_dist=1):
+                        if check_filetype(line):
+                            print(line)
+                            total += 1
+                            matches.append(line)
+                    i += 1
+           
     if total > 0:
         # find highest quality match for video
         tvToDl = []
@@ -280,7 +336,8 @@ def adddir(dir):
         os.chdir("..")
     else:
         os.chdir("OpenDirectoryDownloader")
-        os.system("opendirectorydownloader.exe -q -u " + dir)
+        os.system("chmod +x OpenDirectoryDownloader")
+        os.system("OpenDirectoryDownloader -q -u " + dir)
         os.chdir("..")
 
 def removedir(dir):
