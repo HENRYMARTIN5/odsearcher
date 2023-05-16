@@ -18,6 +18,7 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "psutil"])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "rapidfuzz"])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "langid"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "googlesearch-python"])
     import argparse
     import fuzzysearch
     import os
