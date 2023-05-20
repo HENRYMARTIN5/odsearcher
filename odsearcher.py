@@ -205,10 +205,9 @@ def search(name):
                     # already indexed, don't index again
                     print("Already indexed " + result + ".")
                     continue
-            if result.replace("/", "_") + ".txt" not in currentlyindexed:
+            if result.replace("/", "_").replace(":", "_") + ".txt" not in currentlyindexed:
                 # not indexed, index directory and add filename to search list
                 print("Indexing " + result + " ...")
-                os.chdir("OpenDirectoryDownloader")
                 if os.name == "nt":
                     os.chdir("OpenDirectoryDownloader")
                     os.system("opendirectorydownloader.exe -q -u " + result)
@@ -222,19 +221,23 @@ def search(name):
             else:
                 print("Already indexed " + result + ".")
                 continue
+            
         # now search the newly indexed directories
         for result in searchlist:
             print("Searching " + result + " ...")
-            with open(os.path.join("OpenDirectoryDownloader/Scans", result.replace("/", "_") + ".txt"), "r", errors='replace') as f:
-                text = f.read()
-                i = 0
-                for line in text.splitlines():
-                    if fuzzysearch.find_near_matches(name, line.lower(), max_l_dist=1) or fuzzysearch.find_near_matches(name.replace(" ", "."), line.lower(), max_l_dist=1) or fuzzysearch.find_near_matches(name.replace(" ", "_"), line.lower(), max_l_dist=1):
-                        if check_filetype(line):
-                            print(line)
-                            total += 1
-                            matches.append(line)
-                    i += 1
+            try:
+                with open("OpenDirectoryDownloader/Scans/" + result.replace("/", "_").replace(":", "_") + ".txt", "r", errors='replace') as f:
+                    text = f.read()
+                    i = 0
+                    for line in text.splitlines():
+                        if fuzzysearch.find_near_matches(name, line.lower(), max_l_dist=1) or fuzzysearch.find_near_matches(name.replace(" ", "."), line.lower(), max_l_dist=1) or fuzzysearch.find_near_matches(name.replace(" ", "_"), line.lower(), max_l_dist=1):
+                            if check_filetype(line):
+                                print(line)
+                                total += 1
+                                matches.append(line)
+                        i += 1
+            except FileNotFoundError:
+                print("File not found: " + result + ". Must not have indexed correctly.")
             print("Done searching " + result + ".")
 
     if not args.no_googledork and total == 0:
@@ -258,7 +261,7 @@ def search(name):
         results = googlesearch.search(query)
         for url in results:
             # is url indexed?
-            if os.path.exists(os.path.join("OpenDirectoryDownloader/Scans", url.replace("/", "_") + ".txt")):
+            if os.path.exists(os.path.join("OpenDirectoryDownloader/Scans", url.replace("/", "_").replace(":", "_") + ".txt")):
                 print("Already indexed " + url + ". Skipping.")
                 continue
             isGoodResult = False
@@ -278,7 +281,7 @@ def search(name):
             urlsIndexed.append(url)
         print("Done googledorking for " + query + ". Searching again in new databases...\n")
         for newlyIndexed in urlsIndexed:
-            with open(os.path.join("OpenDirectoryDownloader/Scans", newlyIndexed.replace("/", "_") + ".txt"), "r", errors='replace') as f:
+            with open(os.path.join("OpenDirectoryDownloader/Scans", newlyIndexed.replace("/", "_").replace(":", "_") + ".txt"), "r", errors='replace') as f:
                 text = f.read()
                 i = 0
                 for line in text.splitlines():
@@ -440,7 +443,7 @@ def adddir(dir):
         os.chdir("..")
 
 def removedir(dir):
-    filename = dir.replace("/", "_")
+    filename = dir.replace("/", "_").replace(":", "_")
     if os.path.exists(os.path.join("OpenDirectoryDownloader/Scans", filename)):
         os.remove(filename)
         print("Removed.")
