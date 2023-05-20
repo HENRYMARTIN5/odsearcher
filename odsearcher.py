@@ -267,9 +267,9 @@ def search(name):
         else:
             filequery = False
         if filequery:
-            query = name.lower() + " (" + filequery + ") -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:index.of -inurl:(listen77|mp3raid|mp3toss|mp3drug|index_of|index-of|wallywashis|downloadmana)"
+            query = name.lower() + " (" + filequery + ") -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:index.of -inurl:(listen77|mp3raid|mp3toss|mp3drug|index_of|index-of|wallywashis|downloadmana|sirens)"
         else:
-            query = name.lower() + " -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:index.of -inurl:(listen77|mp3raid|mp3toss|mp3drug|index_of|index-of|wallywashis|downloadmana)"
+            query = name.lower() + " -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:index.of -inurl:(listen77|mp3raid|mp3toss|mp3drug|index_of|index-of|wallywashis|downloadmana|sirens)"
         print("\nGoogle dorking for " + query + " ...")
         urlsIndexed = []
         results = googlesearch.search(query)
@@ -403,7 +403,7 @@ def search(name):
                 yn = input("Download all now? [Y/n] ")
             else:
                 yn = "Y"
-            if yn == "Y" or yn == "y":
+            if not yn == "n" or yn == "N":
                 if not toDl:
                     if not args.tv:
                         if not os.path.exists("downloads"):
