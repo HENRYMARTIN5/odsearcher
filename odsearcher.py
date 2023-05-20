@@ -57,7 +57,7 @@ parser.add_argument('--force-format', help='Force the format of the file (eg. mk
 for util in utils:
     exec(util + ".register_args(parser)")
 parser.add_argument('--add', help='Add a new directory to the index')
-parser.add_argument('--scan-filepursuit', help='Scan filepursuit for new directories to index that might contain the target file')
+parser.add_argument('--scan-filepursuit', action='store_true', help='Scan filepursuit for new directories to index that might contain the target file')
 parser.add_argument('-r', '--remove', help='Remove a directory from the index')
 parser.add_argument('-u', '--update', action='store_true', help='Update all directories in the index')
 args = parser.parse_args()
@@ -169,6 +169,7 @@ def search(name):
                                 matches.append(line)
                         i += 1
                 print("Done searching in " + file + ".\n")
+
     _matches, _total = the_eye.do_search(name, args)
     __total = 0
     for match in _matches:

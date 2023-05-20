@@ -15,7 +15,7 @@ Searches locally indexed open directories for files using broad search categorie
 If you installed the script as reccomended in the above instructions, then you'll already have downloaded the databases for the-eye. If you didn't, that's completely okay - your searches just won't turn anything up until you add some open directories to your local index. If you want a small sample of open directories to get started with, see `samples.md`. To find more open directories, check out the search tools at [odfinder.github.io](https://odfinder.github.io/) and [open-directories.reecemercer.dev](https://open-directories.reecemercer.dev/) - I've found them to work the best out of all I've tried. For interesting results, try pasting the resulting search query into other engines, such as Startpage or DuckDuckGo.
 
 ```txt
-usage: odsearcher.py [-h] [-d] [-s] [-e] [-v] [-a] [-w] [-b] [-t] [-m] [-l LANGUAGE] [-g] [--season SEASON] [--episode EPISODE] [--filter-camera] [--disable-sanity-filter] [--force-format FORCE_FORMAT] [--eye-only] [-n] [--eye-no-nonpiracy] [--eye-no-piracy] [--add ADD] [-r REMOVE] [-u] name
+usage: odsearcher.py [-h] [-d] [-s] [-e] [-v] [-a] [-w] [-b] [-t] [-m] [-l LANGUAGE] [-g] [--season SEASON] [--episode EPISODE] [--filter-camera] [--disable-sanity-filter] [--force-format FORCE_FORMAT] [--eye-only] [-n] [--eye-no-nonpiracy] [--eye-no-piracy] [--add ADD] [--scan-filepursuit] [-r REMOVE] [-u] name
 
 Search for a specific file in the current indexed opendirectories
 
@@ -23,7 +23,7 @@ positional arguments:
   name                  Name of the file or substring to search for. Fuzzy search is performed automatically.
 
 options:
-  -h, --help            show this help message and exit
+  -h, --help            Show this help message and exit
   -d, --download        Download the file(s) found automagically
   -s, --shell-export    Export to a .sh script to download later
   -e, --export          Export the results to a list of URLs
@@ -48,6 +48,7 @@ options:
   --eye-no-nonpiracy    Do not perform a search of the-eye's non-piracy database
   --eye-no-piracy       Do not perform a search of the-eye's piracy database - reccomended for systems on low RAM, the database is 4gb in RAM.
   --add ADD             Add a new directory to the index
+  --scan-filepursuit    Scan filepursuit for new directories to index that might contain the target file
   -r REMOVE, --remove REMOVE
                         Remove a directory from the index
   -u, --update          Update all directories in the index
