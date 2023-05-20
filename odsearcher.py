@@ -146,7 +146,21 @@ def filepursuit(searchterm, ftype, limit=None):
     for file in files:
         if file[19:] not in files2:
             files2.append(file[19:])
-    return files2
+    # even more processing - go up as far as possible in the directory structure
+    files3 = []
+    for file in files2:
+        # traverse upwards until we no longer see the "parent directory" link
+        while True:
+            r = requests.get(file)
+            soup = BeautifulSoup(r.text, "html.parser")
+            links = soup.find_all("a")
+            for link in links:
+                if link.get("href") == "../":
+                    file = file + "../"
+                    break
+            break
+        files3.append(file)
+    return files3
 
 def search(name):
     name = name.lower()
