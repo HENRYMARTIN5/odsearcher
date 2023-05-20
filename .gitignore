@@ -162,3 +162,5 @@ cython_debug/
 # od-specific
 OpenDirectoryDownloader
 *.json
+test.py
+.fixed_dbs

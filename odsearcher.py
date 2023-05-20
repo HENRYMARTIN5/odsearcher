@@ -8,6 +8,9 @@ try:
     import re
     from utils import the_eye
     import googlesearch
+    from bs4 import BeautifulSoup
+    import requests
+    import urllib.parse
 except ImportError:
     # install dependencies
     import subprocess
@@ -19,6 +22,8 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "rapidfuzz"])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "langid"])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "googlesearch-python"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "beautifulsoup4"])
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
     import argparse
     import fuzzysearch
     import os
@@ -52,6 +57,7 @@ parser.add_argument('--force-format', help='Force the format of the file (eg. mk
 for util in utils:
     exec(util + ".register_args(parser)")
 parser.add_argument('--add', help='Add a new directory to the index')
+parser.add_argument('--scan-filepursuit', help='Scan filepursuit for new directories to index that might contain the target file')
 parser.add_argument('-r', '--remove', help='Remove a directory from the index')
 parser.add_argument('-u', '--update', action='store_true', help='Update all directories in the index')
 args = parser.parse_args()
@@ -112,6 +118,35 @@ def extract_season_and_episode(string):
             episode = int(match.group(2))
             return season, episode
         return "", ""
+    
+class FilePursuitType:
+    VIDEO = "video"
+    AUDIO = "audio"
+    BOOKS = "ebook"
+    APPS = "mobile"
+    ARCHIVES = "archive"
+    ALL = "all"
+
+def filepursuit(searchterm, ftype, limit=None):
+    encoded = urllib.parse.quote(searchterm).replace("%20", "+")
+    url = "https://filepursuit.com/pursuit?q=" + encoded + "&type=" + ftype + "&sort=datedesc"
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, "html.parser")
+    links = soup.find_all("a")
+    # now we sift through and find only the ones that are actually files - they start with "/discover.php?link="
+    files = []
+    for link in links:
+        try:
+            if link.get("href").startswith("/discover.php?link="):
+                files.append(link.get("href"))
+        except:
+            # shut up, python
+            pass
+    files2 = []
+    for file in files:
+        if file[19:] not in files2:
+            files2.append(file[19:])
+    return files2
 
 def search(name):
     name = name.lower()
@@ -121,7 +156,7 @@ def search(name):
     matches = []
     if not args.eye_only:
         for file in os.listdir("OpenDirectoryDownloader/Scans"):
-            if file.endswith(".txt"):
+            if file.endswith(".txt") and "sirens.rocks" not in file.lower():
                 print("\nSearching in " + file + " ...")
                 with open(os.path.join("OpenDirectoryDownloader/Scans", file), "r", errors='replace') as f:
                     text = f.read()
@@ -135,9 +170,71 @@ def search(name):
                         i += 1
                 print("Done searching in " + file + ".\n")
     _matches, _total = the_eye.do_search(name, args)
+    __total = 0
+    for match in _matches:
+        if check_filetype(match):
+            __total += 1
+            matches.append(match)
     matches += _matches
-    total += _total
+    total += __total
     print("Total matches: " + str(total))
+
+    if args.scan_filepursuit:
+        # determine filetype
+        if args.video or args.multiplevideo:
+            filetype = FilePursuitType.VIDEO
+        elif args.audio:
+            filetype = FilePursuitType.AUDIO
+        elif args.warez:
+            filetype = FilePursuitType.ARCHIVES
+        elif args.books:
+            filetype = FilePursuitType.BOOKS
+        else:
+            filetype = FilePursuitType.ALL
+        # search filepursuit
+        print("Searching filepursuit...")
+        dirresults = filepursuit(name, filetype)
+        # check if this directory has been indexed before
+        currentlyindexed = os.listdir("OpenDirectoryDownloader/Scans")
+        searchlist = []
+        for result in dirresults:
+            # do fuzzy search, just to be safe
+            for curIndexed in currentlyindexed:
+                if fuzzysearch.find_near_matches(result, curIndexed, max_l_dist=1):
+                    # already indexed, don't index again
+                    print("Already indexed " + result + ".")
+                    continue
+            if result.replace("/", "_") + ".txt" not in currentlyindexed:
+                # not indexed, index directory and add filename to search list
+                print("Indexing " + result + " ...")
+                os.chdir("OpenDirectoryDownloader")
+                if os.name == "nt":
+                    os.chdir("OpenDirectoryDownloader")
+                    os.system("opendirectorydownloader.exe -q -u " + result)
+                    os.chdir("..")
+                else:
+                    os.chdir("OpenDirectoryDownloader")
+                    os.system("chmod +x OpenDirectoryDownloader")
+                    os.system("./OpenDirectoryDownloader -q -u " + result)
+                    os.chdir("..")
+                searchlist.append(result)
+            else:
+                print("Already indexed " + result + ".")
+                continue
+        # now search the newly indexed directories
+        for result in searchlist:
+            print("Searching " + result + " ...")
+            with open(os.path.join("OpenDirectoryDownloader/Scans", result.replace("/", "_") + ".txt"), "r", errors='replace') as f:
+                text = f.read()
+                i = 0
+                for line in text.splitlines():
+                    if fuzzysearch.find_near_matches(name, line.lower(), max_l_dist=1) or fuzzysearch.find_near_matches(name.replace(" ", "."), line.lower(), max_l_dist=1) or fuzzysearch.find_near_matches(name.replace(" ", "_"), line.lower(), max_l_dist=1):
+                        if check_filetype(line):
+                            print(line)
+                            total += 1
+                            matches.append(line)
+                    i += 1
+            print("Done searching " + result + ".")
 
     if not args.no_googledork and total == 0:
         print("No matches, googledorking for " + name + " ...")

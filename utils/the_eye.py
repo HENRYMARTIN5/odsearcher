@@ -1,6 +1,5 @@
 import os
 import fuzzysearch
-import json
 import psutil
 import time
 from datetime import timedelta
