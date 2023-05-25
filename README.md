@@ -15,7 +15,7 @@ Searches locally indexed open directories for files using broad search categorie
 If you installed the script as reccomended in the above instructions, then you'll already have downloaded the databases for the-eye. If you didn't, that's completely okay - your searches just won't turn anything up until you add some open directories to your local index. If you want a small sample of open directories to get started with, see `samples.md`. To find more open directories, check out the search tools at [odfinder.github.io](https://odfinder.github.io/) and [open-directories.reecemercer.dev](https://open-directories.reecemercer.dev/) - I've found them to work the best out of all I've tried. For interesting results, try pasting the resulting search query into other engines, such as Startpage or DuckDuckGo.
 
 ```txt
-usage: odsearcher.py [-h] [-d] [-s] [-e] [-v] [-a] [-w] [-b] [-t] [-m] [-l LANGUAGE] [-g] [--season SEASON] [--episode EPISODE] [--filter-camera] [--disable-sanity-filter] [--force-format FORCE_FORMAT] [--eye-only] [-n] [--eye-no-nonpiracy] [--eye-no-piracy] [--add ADD] [--scan-filepursuit] [-r REMOVE] [-u] name
+usage: odsearcher.py [-h] [-d] [-s] [-e] [-v] [-a] [-w] [-b] [-t] [-m] [-l LANGUAGE] [-g] [--season SEASON] [--episode EPISODE] [--filter-camera] [--disable-sanity-filter] [--force-format FORCE_FORMAT] [--require-https] [--eye-only] [-n] [--eye-no-nonpiracy] [--eye-no-piracy] [--add ADD] [--scan-filepursuit] [-r REMOVE] [-u] name
 
 Search for a specific file in the current indexed opendirectories
 
@@ -23,7 +23,7 @@ positional arguments:
   name                  Name of the file or substring to search for. Fuzzy search is performed automatically.
 
 options:
-  -h, --help            Show this help message and exit
+  -h, --help            show this help message and exit
   -d, --download        Download the file(s) found automagically
   -s, --shell-export    Export to a .sh script to download later
   -e, --export          Export the results to a list of URLs
@@ -43,6 +43,7 @@ options:
                         Disable the sanity filter (eg. no trailers, no sample files, no node_modules on seedboxes, etc.)
   --force-format FORCE_FORMAT
                         Force the format of the file (eg. mkv, mp4, avi, etc.)
+  --require-https       Filter out results that do not use HTTPS (stay safe out there!)
   --eye-only            Only search the-eye.eu. Useful if you're looking for something specific and don't want to wait for the other sites to search.
   -n, --no-eye          Do not search the-eye.eu. Generally useful if you're constrained by disk space, since the index alone is 3gb.
   --eye-no-nonpiracy    Do not perform a search of the-eye's non-piracy database
@@ -97,6 +98,20 @@ Use only the-eye for the search:
 ```sh
 python3 odsearcher.py --eye-only "search query here"
 ```
+
+Use HTTPS only:
+
+```sh
+python3 odsearcher.py --require-https "search query here"
+```
+
+Find a specific book, requiring HTTPS, excluding the-eye's piracy database, and export everything to a bash script to download the files:
+
+```sh
+python3 odsearcher.py --require-https --eye-no-piracy -sb "book title here" 
+```
+
+> Pro tip: use lowercase characters for your search query - strings are compared case-insensitively, so you'll get more results that way.
 
 ## Contributing
 

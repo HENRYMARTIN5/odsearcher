@@ -54,6 +54,7 @@ parser.add_argument('--episode', help='Episode number for TV show search')
 parser.add_argument('--filter-camera', action='store_true', help='Filter out camera rips')
 parser.add_argument('--disable-sanity-filter', action='store_true', help='Disable the sanity filter (eg. no trailers, no sample files, no node_modules on seedboxes, etc.)')
 parser.add_argument('--force-format', help='Force the format of the file (eg. mkv, mp4, avi, etc.)')
+parser.add_argument('--require-https', action='store_true', help='Filter out results that do not use HTTPS (stay safe out there!)')
 for util in utils:
     exec(util + ".register_args(parser)")
 parser.add_argument('--add', help='Add a new directory to the index')
@@ -396,7 +397,10 @@ def search(name):
                 os.chdir("downloads")
                 with open("download_links.txt", "w") as f:
                     for match in matches:
-                        f.write(match + "\n")
+                        if not args.require_https:
+                            f.write(match + "\n")
+                        elif "https://" in match:
+                            f.write(match + "\n")
                 print("Links exported to downloads/download_links.txt")
                 return
             if not args.download:
@@ -410,7 +414,10 @@ def search(name):
                             os.mkdir("downloads")
                             os.chdir("downloads")
                         for match in matches:
-                            os.system("wget " + bash_escape(match))
+                            if not args.require_https:
+                                os.system("wget " + bash_escape(match))
+                            elif "https://" in match:
+                                os.system("wget " + bash_escape(match))
                     else:
                         if len(tvToDl) == 0:
                             print("No episodes found.")
@@ -419,12 +426,18 @@ def search(name):
                                 os.mkdir("downloads")
                             os.chdir("downloads")
                             for dl in tvToDl:
-                                os.system("wget " + bash_escape(dl))
+                                if not args.require_https:
+                                    os.system("wget " + bash_escape(dl))
+                                elif "https://" in match:
+                                    os.system("wget " + bash_escape(dl))
                 else:
                     if not os.path.exists("downloads"):
                         os.mkdir("downloads")
                     os.chdir("downloads")
-                    os.system("wget " + bash_escape(toDl))
+                    if not args.require_https:
+                        os.system("wget " + bash_escape(toDl))
+                    elif "https://" in match:
+                        os.system("wget " + bash_escape(toDl))
         else:
             if not os.path.exists("downloads"):
                 os.mkdir("downloads")
@@ -432,16 +445,25 @@ def search(name):
             with open("download.sh", "w") as f:
                 if not toDl:
                     for match in matches:
-                        f.write("wget " + bash_escape(match.encode('ascii', 'replace').decode()) + "\n")
+                        if not args.require_https:
+                            f.write("wget " + bash_escape(match.encode('ascii', 'replace').decode()) + "\n")
+                        elif "https://" in match:
+                            f.write("wget " + bash_escape(match.encode('ascii', 'replace').decode()) + "\n")
                 else:
                     if not args.tv:
-                        f.write("wget " + bash_escape(toDl.encode('ascii', 'replace').decode()) + "\n")
+                        if not args.require_https:
+                            f.write("wget " + bash_escape(toDl.encode('ascii', 'replace').decode()) + "\n")
+                        elif "https://" in match:
+                            f.write("wget " + bash_escape(toDl.encode('ascii', 'replace').decode()) + "\n")
                     else:
                         if len(tvToDl) == 0:
                             print("No episodes found.")
                         else:
                             for dl in tvToDl:
-                                f.write("wget " + bash_escape(dl.encode('ascii', 'replace').decode()) + "\n")
+                                if not args.require_https:
+                                    f.write("wget " + bash_escape(dl.encode('ascii', 'replace').decode()) + "\n")
+                                elif "https://" in match:
+                                    f.write("wget " + bash_escape(dl.encode('ascii', 'replace').decode()) + "\n")
             print("Exported to download.sh")
 
 def adddir(dir):
