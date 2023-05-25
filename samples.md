@@ -7,3 +7,5 @@ Just add these to your local index to get started on your indexing journey. If y
 - <https://freeware.epsc.wustl.edu/Win> and <https://freeware.epsc.wustl.edu/Mac> - Old freeware for a variety of platforms
 - <https://ftp.mozilla.org/pub/> - Mozilla software
 - <http://ftp.lip6.fr/pub/> - A variety of software, including some old versions of Windows and Linux.
+- <https://ftp.osuosl.org/pub/> - Mirror of free software projects, including LibreOffice, CentOS, and more.
+- <https://www.chocolate-doom.org/downloads/> - Chocolate Doom, a Doom source port
