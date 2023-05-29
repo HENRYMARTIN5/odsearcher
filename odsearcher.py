@@ -11,11 +11,15 @@ try:
     from bs4 import BeautifulSoup
     import requests
     import urllib.parse
+    import time
+    import sys
 except ImportError:
     # install dependencies
     import subprocess
     import sys
     import re
+    import time
+    import sys
     subprocess.check_call([sys.executable, "-m", "pip", "install", "argparse"])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "fuzzysearch"])
     subprocess.check_call([sys.executable, "-m", "pip", "install", "psutil"])
@@ -62,6 +66,7 @@ parser.add_argument('--scan-filepursuit', action='store_true', help='Scan filepu
 parser.add_argument('--scan-odcrawler', action='store_true', help='Similar to filepursuit, but uses odcrawler.xyz instead')
 parser.add_argument('-r', '--remove', help='Remove a directory from the index')
 parser.add_argument('-u', '--update', action='store_true', help='Update all directories in the index')
+parser.add_argument('-c', '--clean', action='store_true', help='Clean the index of dead directories')
 args = parser.parse_args()
 
 def check_filetype(name):
@@ -519,7 +524,30 @@ def update():
             print("Updating " + dir + "...")
             adddir(dir)
 
+def clean():
+    # prune dead dirs
+    origDir = os.getcwd()
+    os.chdir("OpenDirectoryDownloader/Scans")
+    for dir in os.listdir():
+        if dir.endswith(".txt"):
+            with open(dir, "r", errors='replace') as f:
+                line = f.readline()
+                # send a get request and abort after recieving headers
+                try:
+                    print("Sending request to " + line + "...")
+                    r = requests.get(line, stream=True, timeout=5)
+                    if r.status_code == 200:
+                        pass
+                except:
+                    print("Removing " + dir + "...")
+                    f.close()
+                    os.remove(dir)
+    os.chdir(origDir)
+
 if __name__ == "__main__":
+    if args.clean:
+        clean()
+        sys.exit(0)
     if not args.add or args.remove or args.update:
         if not args.name:
             print("You must specify a name to search for.")
