@@ -48,7 +48,7 @@ parser.add_argument('-b', '--books', action='store_true', help='Optimize for ebo
 parser.add_argument('-t', '--tv', action='store_true', help='Optimize for TV show search')
 parser.add_argument('-m', '--multiplevideo', action='store_true', help='Optimize for multiple-video search (eg. movie series)')
 parser.add_argument('-l', '--language', help='Filter to the specified language (eg. en, fr, de, es, etc.)')
-parser.add_argument('-g', '--no-googledork', action='store_true', help='Google dork to find more directories containing the file.')
+parser.add_argument('-g', '--googledork', action='store_true', help='Google dork to find more directories containing the file.')
 parser.add_argument('--season', help='Season number for TV show search')
 parser.add_argument('--episode', help='Episode number for TV show search')
 parser.add_argument('--filter-camera', action='store_true', help='Filter out camera rips')
@@ -59,6 +59,7 @@ for util in utils:
     exec(util + ".register_args(parser)")
 parser.add_argument('--add', help='Add a new directory to the index')
 parser.add_argument('--scan-filepursuit', action='store_true', help='Scan filepursuit for new directories to index that might contain the target file')
+parser.add_argument('--scan-odcrawler', action='store_true', help='Similar to filepursuit, but uses odcrawler.xyz instead')
 parser.add_argument('-r', '--remove', help='Remove a directory from the index')
 parser.add_argument('-u', '--update', action='store_true', help='Update all directories in the index')
 args = parser.parse_args()
@@ -163,6 +164,22 @@ def filepursuit(searchterm, ftype, limit=None):
         files3.append(file)
     return files3
 
+def odcrawler(query, limit=10):
+    payload = {"size":limit,"from":0,"highlight":{"fields":{"url":{},"filename":{}}},"query":{"bool":{"must":[{"match_phrase":{"url":query}}],"should":[{"match_phrase":{"filename":query}}],"must_not":[{"terms":{"extension":["html","html","HTML"]}}]}}}
+    target = "https://search.odcrawler.xyz/elastic/links/_search"
+    r = requests.post(target, json=payload)
+    j = r.json()
+    print("Took " + str(j["took"]) + "ms")
+    if j["timed_out"]:
+        print("Timed out!")
+        return
+    print("Found " + str(len(j["hits"]["hits"])) + " results")
+    results = []
+    total = len(j["hits"]["hits"])
+    for i in j["hits"]["hits"]:
+        results.append(i["_source"]["url"])
+    return results, total
+
 def search(name):
     name = name.lower()
     # current directory contains a bunch of text files with the urls to files in the open directories
@@ -255,7 +272,16 @@ def search(name):
                 print("File not found: " + result + ". Must not have indexed correctly.")
             print("Done searching " + result + ".")
 
-    if not args.no_googledork and total == 0:
+    if args.scan_odcrawler:
+        results, total = odcrawler(name)
+        _matches = []
+        for result in results:
+            if check_filetype(result):
+                _matches.append(result)
+        matches += _matches
+        total += len(_matches)
+        
+    if not args.googledork and total == 0:
         print("No matches, googledorking for " + name + " ...")
         if args.video or args.multiplevideo:
             filequery = "mkv|mp4|avi|mov|mpg|wmv|divx|mpeg"
