@@ -55,7 +55,7 @@ parser.add_argument('-l', '--language', help='Filter to the specified language (
 parser.add_argument('-g', '--googledork', action='store_true', help='Google dork to find more directories containing the file.')
 parser.add_argument('--season', help='Season number for TV show search')
 parser.add_argument('--episode', help='Episode number for TV show search')
-parser.add_argument('--filter-camera', action='store_true', help='Filter out camera rips')
+parser.add_argument('--filter-camera', action='store_true', help='Filter out camera rips (why were these even invented?)')
 parser.add_argument('--disable-sanity-filter', action='store_true', help='Disable the sanity filter (eg. no trailers, no sample files, no node_modules on seedboxes, etc.)')
 parser.add_argument('--force-format', help='Force the format of the file (eg. mkv, mp4, avi, etc.)')
 parser.add_argument('--require-https', action='store_true', help='Filter out results that do not use HTTPS (stay safe out there!)')
@@ -537,12 +537,17 @@ def clean():
         if dir.endswith(".txt"):
             with open(dir, "r", errors='replace') as f:
                 line = f.readline()
+                while not line.endswith(".html") and not line.endswith(".htm"):
+                    line = f.readline() # just to make sure that pages are properly ignored
                 # send a get request and abort after recieving headers
                 try:
                     print("Sending request to " + line + "...")
                     r = requests.get(line, stream=True, timeout=5)
-                    if r.status_code == 200:
-                        pass
+                    if not r.status_code == 200:
+                        print("Removing " + dir + "...")
+                        f.close()
+                        os.remove(dir)
+                    
                 except:
                     print("Removing " + dir + "...")
                     f.close()
