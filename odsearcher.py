@@ -62,6 +62,7 @@ parser.add_argument('--require-https', action='store_true', help='Filter out res
 for util in utils:
     exec(util + ".register_args(parser)")
 parser.add_argument('--add', help='Add a new directory to the index')
+parser.add_argument('--force-singlethreaded', action='store_true', help='Force single-threaded mode for OpenDirectoryDownloader, useful for ratelimited ODs')
 parser.add_argument('--scan-filepursuit', action='store_true', help='Scan filepursuit for new directories to index that might contain the target file')
 parser.add_argument('--scan-odcrawler', action='store_true', help='Similar to filepursuit, but uses odcrawler.xyz instead')
 parser.add_argument('-r', '--remove', help='Remove a directory from the index')
@@ -499,14 +500,18 @@ def search(name):
 
 def adddir(dir):
     # call opendirectorydownloader.exe on windows, opendirectorydownloader on linux - file is located in parent dir
+    if not args.force_singlethreaded:
+        args = "-q -u " + dir
+    else:
+        args = "-q -u " + dir + " -t 1"
     if os.name == "nt":
         os.chdir("OpenDirectoryDownloader")
-        os.system("opendirectorydownloader.exe -q -u " + dir)
+        os.system("opendirectorydownloader.exe " + args)
         os.chdir("..")
     else:
         os.chdir("OpenDirectoryDownloader")
         os.system("chmod +x OpenDirectoryDownloader")
-        os.system("OpenDirectoryDownloader -q -u " + dir)
+        os.system("./OpenDirectoryDownloader " + args)
         os.chdir("..")
 
 def removedir(dir):
