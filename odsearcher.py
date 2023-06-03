@@ -499,6 +499,7 @@ def search(name):
             print("Exported to download.sh")
 
 def adddir(dir):
+    global args
     # call opendirectorydownloader.exe on windows, opendirectorydownloader on linux - file is located in parent dir
     if not args.force_singlethreaded:
         args = "-q -u " + dir
