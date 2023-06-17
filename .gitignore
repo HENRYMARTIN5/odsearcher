@@ -164,3 +164,5 @@ OpenDirectoryDownloader
 *.json
 test.py
 .fixed_dbs
+rarbg_movies.txt
+rarbg_shows.txt

@@ -34,7 +34,7 @@ except ImportError:
     import langid
     import googlesearch
 
-utils = ["the_eye"]
+utils = ["the_eye", "rarbg"]
 
 # import all utils
 for util in utils:
@@ -194,7 +194,7 @@ def search(name):
     matches = []
     if not args.eye_only:
         for file in os.listdir("OpenDirectoryDownloader/Scans"):
-            if file.endswith(".txt") and "sirens.rocks" not in file.lower():
+            if file.endswith(".txt") and "sirens.rocks" not in file.lower(): # sirens.rocks is phishing
                 print("\nSearching in " + file + " ...")
                 with open(os.path.join("OpenDirectoryDownloader/Scans", file), "r", errors='replace') as f:
                     text = f.read()
@@ -216,6 +216,17 @@ def search(name):
             matches.append(match)
     matches += _matches
     total += __total
+
+    _matches, _total = rarbg.do_search(name, args)
+    __total = 0
+    for match in _matches:
+        if check_filetype(match):
+            __total += 1
+            matches.append(match)
+    matches += _matches
+    total += __total
+
+
     print("Total matches: " + str(total))
 
     if args.scan_filepursuit:
